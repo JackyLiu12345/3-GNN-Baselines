@@ -12,7 +12,7 @@ from torch_scatter import scatter_mean
 import torch.nn.functional as F
 import numpy as np
 from others.earlystopping import EarlyStopping
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 from Process.rand5fold import *
 from others.evaluate import *
@@ -179,8 +179,8 @@ def train_GCN(x_test, x_train,lr, weight_decay,patience,n_epochs,batchsize,datan
 
     for epoch in range(n_epochs): 
         traindata_list, testdata_list = loadData(dataname, x_train, x_test, droprate=0.4) # T15 droprate = 0.1
-        train_loader = DataLoader(traindata_list, batch_size=batchsize, shuffle=True, num_workers=5)
-        test_loader = DataLoader(testdata_list, batch_size=batchsize, shuffle=True, num_workers=5)     
+        train_loader = DataLoader(traindata_list, batch_size=batchsize, shuffle=True, num_workers=2)
+        test_loader = DataLoader(testdata_list, batch_size=batchsize, shuffle=True, num_workers=2)     
         avg_loss = [] 
         avg_acc = []
         batch_idx = 0
@@ -294,45 +294,46 @@ def train_GCN(x_test, x_train,lr, weight_decay,patience,n_epochs,batchsize,datan
 
 
 ##---------------------------------main---------------------------------------
-scale = 1
-lr=0.0005 * scale
-weight_decay=1e-4
-patience=10
-n_epochs=200
-batchsize=120  
-datasetname='Twitter16' # (1)Twitter15  (2)pheme  (3)weibo
-#model="GCN" 
-device = th.device('cuda:4' if th.cuda.is_available() else 'cpu')
-test_accs = [] 
-NR_F1 = [] # NR
-FR_F1 = [] # FR
-TR_F1 = [] # TR
-UR_F1 = [] # UR
+if __name__ == '__main__':
+    scale = 1
+    lr=0.0005 * scale
+    weight_decay=1e-4
+    patience=10
+    n_epochs=200
+    batchsize=120  
+    datasetname='Twitter16' # (1)Twitter15  (2)pheme  (3)weibo
+    #model="GCN" 
+    device = th.device('cuda:0' if th.cuda.is_available() else 'cpu')
+    test_accs = [] 
+    NR_F1 = [] # NR
+    FR_F1 = [] # FR
+    TR_F1 = [] # TR
+    UR_F1 = [] # UR
 
-data_path = './data/twitter16/'
-laebl_path = './data/Twitter16_label_All.txt'
+    data_path = './data/twitter16/'
+    laebl_path = './data/Twitter16_label_All.txt'
 
-fold0_x_test, fold0_x_train, \
-fold1_x_test,  fold1_x_train,\
-fold2_x_test, fold2_x_train, \
-fold3_x_test, fold3_x_train, \
-fold4_x_test,fold4_x_train = load5foldData(datasetname,data_path,laebl_path)
+    fold0_x_test, fold0_x_train, \
+    fold1_x_test,  fold1_x_train,\
+    fold2_x_test, fold2_x_train, \
+    fold3_x_test, fold3_x_train, \
+    fold4_x_test,fold4_x_train = load5foldData(datasetname,data_path,laebl_path)
 
-print('fold0 shape: ', len(fold0_x_test), len(fold0_x_train))
-print('fold1 shape: ', len(fold1_x_test), len(fold1_x_train))
-print('fold2 shape: ', len(fold2_x_test), len(fold2_x_train))
-print('fold3 shape: ', len(fold3_x_test), len(fold3_x_train))
-print('fold4 shape: ', len(fold4_x_test), len(fold4_x_train))
+    print('fold0 shape: ', len(fold0_x_test), len(fold0_x_train))
+    print('fold1 shape: ', len(fold1_x_test), len(fold1_x_train))
+    print('fold2 shape: ', len(fold2_x_test), len(fold2_x_train))
+    print('fold3 shape: ', len(fold3_x_test), len(fold3_x_train))
+    print('fold4 shape: ', len(fold4_x_test), len(fold4_x_train))
 
 
-accs0, F1_0, F2_0, F3_0, F4_0 = train_GCN(fold0_x_test,fold0_x_train,lr,weight_decay, patience,n_epochs,batchsize,datasetname)
-accs1, F1_1, F2_1, F3_1, F4_1 = train_GCN(fold1_x_test,fold1_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
-accs2, F1_2, F2_2, F3_2, F4_2 = train_GCN(fold2_x_test,fold2_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
-accs3, F1_3, F2_3, F3_3, F4_3 = train_GCN(fold3_x_test,fold3_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
-accs4, F1_4, F2_4, F3_4, F4_4 = train_GCN(fold4_x_test,fold4_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
-test_accs.append((accs0+accs1+accs2+accs3+accs4)/5) 
-NR_F1.append((F1_0+F1_1+F1_2+F1_3+F1_4)/5) 
-FR_F1.append((F2_0 + F2_1 + F2_2 + F2_3 + F2_4) / 5) 
-TR_F1.append((F3_0 + F3_1 + F3_2 + F3_3 + F3_4) / 5) 
-UR_F1.append((F4_0 + F4_1 + F4_2 + F4_3 + F4_4) / 5)
-print("AVG_result: {:.4f}|UR F1: {:.4f}|NR F1: {:.4f}|TR F1: {:.4f}|FR F1: {:.4f}".format(sum(test_accs), sum(NR_F1), sum(FR_F1), sum(TR_F1), sum(UR_F1)))
+    accs0, F1_0, F2_0, F3_0, F4_0 = train_GCN(fold0_x_test,fold0_x_train,lr,weight_decay, patience,n_epochs,batchsize,datasetname)
+    accs1, F1_1, F2_1, F3_1, F4_1 = train_GCN(fold1_x_test,fold1_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
+    accs2, F1_2, F2_2, F3_2, F4_2 = train_GCN(fold2_x_test,fold2_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
+    accs3, F1_3, F2_3, F3_3, F4_3 = train_GCN(fold3_x_test,fold3_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
+    accs4, F1_4, F2_4, F3_4, F4_4 = train_GCN(fold4_x_test,fold4_x_train,lr,weight_decay,patience,n_epochs,batchsize,datasetname)
+    test_accs.append((accs0+accs1+accs2+accs3+accs4)/5) 
+    NR_F1.append((F1_0+F1_1+F1_2+F1_3+F1_4)/5) 
+    FR_F1.append((F2_0 + F2_1 + F2_2 + F2_3 + F2_4) / 5) 
+    TR_F1.append((F3_0 + F3_1 + F3_2 + F3_3 + F3_4) / 5) 
+    UR_F1.append((F4_0 + F4_1 + F4_2 + F4_3 + F4_4) / 5)
+    print("AVG_result: {:.4f}|UR F1: {:.4f}|NR F1: {:.4f}|TR F1: {:.4f}|FR F1: {:.4f}".format(sum(test_accs), sum(NR_F1), sum(FR_F1), sum(TR_F1), sum(UR_F1)))
