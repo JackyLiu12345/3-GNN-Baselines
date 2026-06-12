@@ -12,7 +12,7 @@ from torch_scatter import scatter_mean
 import torch.nn.functional as F
 import numpy as np
 from others.earlystopping import EarlyStopping
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 from Process.rand5fold import *
 from others.evaluate import *
@@ -302,7 +302,7 @@ n_epochs=200
 batchsize=120  
 datasetname='Twitter16' # (1)Twitter15  (2)pheme  (3)weibo
 #model="GCN" 
-device = th.device('cuda:4' if th.cuda.is_available() else 'cpu')
+device = th.device('cuda:0' if th.cuda.is_available() else 'cpu')
 test_accs = [] 
 NR_F1 = [] # NR
 FR_F1 = [] # FR
